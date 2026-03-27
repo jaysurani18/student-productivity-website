@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, CheckCircle, Circle, Filter, Calendar, Clock, FolderOpen } from 'lucide-react';
 import api from '../api';
+import toast from 'react-hot-toast';
 
 const CATEGORIES = ['assignment', 'exam', 'project', 'personal'];
 const URGENCIES  = ['low', 'medium', 'high'];
@@ -46,7 +47,14 @@ const Tasks = () => {
   const [loading, setLoading]     = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [newTask, setNewTask]     = useState({ title:'', description:'', category:'', due_date:'', urgency_level:'medium' });
-  const [filters, setFilters]     = useState({ category:'', urgency:'' });
+  const [filters, setFilters] = useState(() => {
+    const saved = localStorage.getItem('cc_task_filters');
+    return saved ? JSON.parse(saved) : { category:'', urgency:'' };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cc_task_filters', JSON.stringify(filters));
+  }, [filters]);
 
   const fetchTasks = async () => {
     setLoading(true);
@@ -56,7 +64,7 @@ const Tasks = () => {
       if (filters.urgency)  params.urgency  = filters.urgency;
       const res = await api.get('/tasks', { params });
       setTasks(Array.isArray(res.data) ? res.data : []);
-    } catch (err) { console.error(err); setTasks([]); }
+    } catch (err) { console.error(err); setTasks([]); toast.error('Failed to load tasks'); }
     finally { setLoading(false); }
   };
 
@@ -64,25 +72,37 @@ const Tasks = () => {
 
   const handleAdd = async (e) => {
     e.preventDefault();
+    const titleTrim = newTask.title.trim();
+    if (!titleTrim) return toast.error('Task title cannot be empty.');
+    if (titleTrim.length < 3) return toast.error('Task title must be at least 3 characters.');
+
     try {
       await api.post('/tasks', newTask);
+      toast.success('Task created successfully!');
       setShowModal(false);
       setNewTask({ title:'', description:'', category:'', due_date:'', urgency_level:'medium' });
       fetchTasks();
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+      toast.error(err.response?.data?.error || 'Failed to create task');
+    }
   };
 
   const toggleComplete = async (task) => {
     try {
       // Only send is_completed — avoids sending due_date back which causes timezone drift
       await api.patch(`/tasks/${task.id}/toggle`, { is_completed: !task.is_completed });
+      if (!task.is_completed) toast.success('Task completed!');
       fetchTasks();
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      toast.error('Failed to update task');
+      console.error(err); 
+    }
   };
 
   const deleteTask = async (id) => {
-    try { await api.delete(`/tasks/${id}`); setTasks(t => t.filter(x => x.id !== id)); }
-    catch (err) { console.error(err); }
+    try { await api.delete(`/tasks/${id}`); setTasks(t => t.filter(x => x.id !== id)); toast.success('Task deleted'); }
+    catch (err) { toast.error('Failed to delete task'); console.error(err); }
   };
 
   const total    = tasks.length;

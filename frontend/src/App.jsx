@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, CheckSquare, Bell, LogOut } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, CheckSquare, Bell, LogOut, GraduationCap } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import ConfirmationModal from './components/ConfirmationModal';
 import Dashboard from './pages/Dashboard';
 import Schedule  from './pages/Schedule';
 import Tasks     from './pages/Tasks';
@@ -11,12 +12,13 @@ import Settings  from './pages/Settings';
 import Login     from './pages/Login';
 import Admin     from './pages/Admin';
 import { Sun, Moon, Settings as SettingsIcon, User } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
 
 const navItems = [
-  { path: '/',         label: 'Overview', icon: LayoutDashboard },
+  { path: '/',         label: 'Dashboard', icon: LayoutDashboard },
   { path: '/schedule', label: 'Schedule', icon: CalendarDays },
   { path: '/tasks',    label: 'Tasks',    icon: CheckSquare },
-  { path: '/notices',  label: 'Notices',  icon: Bell },
+  { path: '/notices',  label: 'Assignments/Notices',  icon: Bell },
 ];
 
 // Redirect to /login if not authenticated
@@ -44,13 +46,16 @@ const Sidebar = () => {
   const { pathname } = useLocation();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   return (
     <div className="sidebar-bg" style={{ width:'260px', minWidth:'260px', height:'100vh', display:'flex', flexDirection:'column', padding:'20px', borderRight:'1px solid rgba(255,255,255,0.06)', overflowY:'auto' }}>
       {/* Logo */}
       <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'32px', padding:'4px' }}>
-        <div className="logo-icon-bg" style={{ width:'40px', height:'40px', borderRadius:'12px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'13px', fontWeight:900 }}>CC</div>
-        <span className="logo-text-grad" style={{ fontWeight:800, fontSize:'17px', letterSpacing:'-0.02em' }}>CampusCompanion</span>
+        <div className="logo-icon-bg" style={{ width:'40px', height:'40px', borderRadius:'12px', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow: '0 4px 14px rgba(16,185,129,0.3)' }}>
+          <GraduationCap size={22} color="#fff" />
+        </div>
+        <span className="logo-text-grad" style={{ fontWeight:800, fontSize:'17px', letterSpacing:'-0.02em' }}>StudyPoint</span>
       </div>
 
       <p style={{ color:'rgba(255,255,255,0.25)', fontSize:'11px', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:'10px', padding:'0 4px' }}>Navigation</p>
@@ -90,13 +95,22 @@ const Sidebar = () => {
             <p style={{ color:'rgba(255,255,255,0.35)', fontSize:'11px', margin:0 }}>Academic Year 2025</p>
           </div>
         </div>
-        <button onClick={() => { logout(); window.location.href = '/login'; }}
+        <button onClick={() => setShowLogoutModal(true)}
           style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', padding:'9px 12px', borderRadius:'10px', border:'1px solid rgba(239,68,68,0.2)', background:'rgba(239,68,68,0.06)', color:'rgba(239,68,68,0.7)', fontSize:'12px', fontWeight:600, cursor:'pointer', transition:'all 0.18s' }}
           onMouseEnter={e => { e.currentTarget.style.background='rgba(239,68,68,0.15)'; e.currentTarget.style.color='#f87171'; }}
           onMouseLeave={e => { e.currentTarget.style.background='rgba(239,68,68,0.06)'; e.currentTarget.style.color='rgba(239,68,68,0.7)'; }}>
           <LogOut size={13} /> Sign Out
         </button>
       </div>
+
+      <ConfirmationModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={() => { logout(); window.location.href = '/login'; }}
+        title="Sign Out"
+        message="Are you sure you want to sign out?"
+        confirmText="Yes, Sign Out"
+      />
     </div>
   );
 };
@@ -125,6 +139,7 @@ function App() {
     <AuthProvider>
       <ThemeProvider>
         <BrowserRouter>
+          <Toaster position="top-right" toastOptions={{ style: { background: 'var(--bg-secondary)', color: 'var(--text-primary)', borderRadius: '12px', border: '1px solid var(--border-color)' } }} />
           <Routes>
             {/* Public */}
             <Route path="/login" element={<Login />} />
