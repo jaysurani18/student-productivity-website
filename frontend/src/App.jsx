@@ -11,7 +11,8 @@ import Notices   from './pages/Notices';
 import Settings  from './pages/Settings';
 import Login     from './pages/Login';
 import Admin     from './pages/Admin';
-import { Sun, Moon, Settings as SettingsIcon, User } from 'lucide-react';
+import Tutor     from './pages/Tutor';
+import { Sun, Moon, Settings as SettingsIcon, User, Bot } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { path: '/schedule', label: 'Schedule', icon: CalendarDays },
   { path: '/tasks',    label: 'Tasks',    icon: CheckSquare },
   { path: '/notices',  label: 'Assignments/Notices',  icon: Bell },
+  { path: '/tutor',    label: 'AI Tutor', icon: Bot },
 ];
 
 // Redirect to /login if not authenticated
@@ -126,6 +128,7 @@ function AppShell() {
             <Route path="/schedule" element={<Schedule />} />
             <Route path="/tasks"    element={<Tasks />} />
             <Route path="/notices"  element={<Notices />} />
+            <Route path="/tutor"    element={<Tutor />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </div>

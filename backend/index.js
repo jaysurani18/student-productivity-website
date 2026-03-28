@@ -16,6 +16,7 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/notices', require('./routes/notices'));
 app.use('/api/assignments', require('./routes/assignments'));
+app.use('/api/chat', require('./routes/chat'));
 
 // Basic Route
 app.get('/', (req, res) => {
