@@ -225,7 +225,7 @@ const Admin = () => {
           { key:'overview',    icon:Shield,       label:'Overview' },
           { key:'users',       icon:Users,        label:'Students' },
           { key:'schedule',    icon:CalendarDays, label:'Schedule' },
-          { key:'notices',     icon:Megaphone,    label:'Notices' },
+          { key:'notices',     icon:Megaphone,    label:'Assignment/Notices' },
           { key:'submissions', icon:FileText,     label:'Submissions' },
           { key:'profile',     icon:User,         label:'Profile' },
         ].map(({ key, icon: Icon, label }) => (
