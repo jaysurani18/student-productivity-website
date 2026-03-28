@@ -38,6 +38,13 @@ const Notices = () => {
       return;
     }
 
+    // Check if deadline has passed
+    const notice = notices.find(n => n.id === noticeId);
+    if (notice && notice.deadline && new Date(notice.deadline) < new Date()) {
+      setSubmitMessage({ type: 'error', text: 'This assignment deadline has passed. Submissions are no longer accepted.' });
+      return;
+    }
+
     setSubmitLoading(true);
     setSubmitMessage({ type: '', text: '' });
 
@@ -181,10 +188,32 @@ const Notices = () => {
                     </a>
                   )}
                   
-                  {notice.requires_submission && activeSubmitNoticeId !== notice.id && (
-                    <button onClick={() => { setActiveSubmitNoticeId(notice.id); resetForm(); }} style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}>
-                      <Upload size={14} /> Submit Assignment
-                    </button>
+                  {notice.requires_submission && (
+                    <>
+                      {notice.deadline && (
+                        <p style={{ fontSize: '12px', color: new Date(notice.deadline) < new Date() ? '#ef4444' : '#10b981', margin: '12px 0 0', fontWeight: 600 }}>
+                          📅 Submission Deadline: {new Date(notice.deadline).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          {new Date(notice.deadline) < new Date() && ' (Closed)'}
+                        </p>
+                      )}
+                      {activeSubmitNoticeId !== notice.id && (!notice.deadline || new Date(notice.deadline) >= new Date()) && (
+                        <button onClick={() => { setActiveSubmitNoticeId(notice.id); resetForm(); }} style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)' }}>
+                          <Upload size={14} /> Submit Assignment
+                        </button>
+                      )}
+                      {notice.deadline && new Date(notice.deadline) < new Date() && (
+                        <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                          <AlertTriangle size={16} />
+                          <span style={{ fontSize: '12px', fontWeight: 600 }}>This assignment deadline has passed. Submissions are no longer accepted.</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {!notice.requires_submission && notice.due_date && (
+                    <p style={{ fontSize: '12px', color: '#10b981', margin: '12px 0 0', fontWeight: 600 }}>
+                      📅 Due Date: {new Date(notice.due_date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   )}
 
                   {activeSubmitNoticeId === notice.id && (

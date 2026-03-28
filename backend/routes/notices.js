@@ -49,12 +49,12 @@ router.get('/', authenticate, async (req, res) => {
 // Create notice (Admin Only) - Now with file upload support
 router.post('/', authenticate, adminOnly, upload.single('attachment'), async (req, res) => {
     try {
-        const { title, content, severity, requires_submission } = req.body;
+        const { title, content, severity, requires_submission, deadline, due_date } = req.body;
         const attachmentPath = req.file ? `/uploads/notices/${req.file.filename}` : null;
         
         const result = await pool.query(
-            'INSERT INTO notices (title, content, severity, attachment_path, requires_submission) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [title, content, severity || 'info', attachmentPath, requires_submission === 'true' || requires_submission === true]
+            'INSERT INTO notices (title, content, severity, attachment_path, requires_submission, deadline, due_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [title, content, severity || 'info', attachmentPath, requires_submission === 'true' || requires_submission === true, deadline || null, due_date || null]
         );
         res.status(201).json(result.rows[0]);
     } catch (err) {

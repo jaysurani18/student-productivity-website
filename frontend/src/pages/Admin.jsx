@@ -15,7 +15,7 @@ const Admin = () => {
   const [submissions, setSubmissions] = useState([]);
   const [events, setEvents]   = useState([]);
   const [tab, setTab]         = useState('overview'); // overview | users | notices | schedule
-  const [newNotice, setNewNotice] = useState({ title:'', content:'', severity:'info', attachment: null, requires_submission: false });
+  const [newNotice, setNewNotice] = useState({ title:'', content:'', severity:'info', attachment: null, requires_submission: false, deadline: '', due_date: '' });
   const [newUser, setNewUser]     = useState({ name:'', email:'', password:'' });
   const [newEvent, setNewEvent]   = useState({ title:'', start_time:'', end_time:'', location:'', event_type:'lecture' });
   const [showModal, setShowModal] = useState(false);
@@ -114,6 +114,7 @@ const Admin = () => {
     e.preventDefault();
     if (!newNotice.title.trim()) return toast.error('Title is required.');
     if (!newNotice.content.trim()) return toast.error('Content is required.');
+    if (newNotice.requires_submission && !newNotice.deadline) return toast.error('Submission deadline is required for assignment submissions.');
     if (newNotice.attachment && newNotice.attachment.size > 5 * 1024 * 1024) return toast.error('File size exceeds 5MB limit.');
     
     setSubmitting(true);
@@ -123,6 +124,12 @@ const Admin = () => {
     formData.append('content', newNotice.content);
     formData.append('severity', newNotice.severity);
     formData.append('requires_submission', newNotice.requires_submission);
+    if (newNotice.deadline) {
+      formData.append('deadline', new Date(newNotice.deadline).toISOString());
+    }
+    if (newNotice.due_date) {
+      formData.append('due_date', new Date(newNotice.due_date).toISOString());
+    }
     if (newNotice.attachment) {
       formData.append('attachment', newNotice.attachment);
     }
@@ -131,7 +138,7 @@ const Admin = () => {
       await api.post('/notices', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Notice posted successfully!', { id: toastId });
       setShowModal(false);
-      setNewNotice({ title:'', content:'', severity:'info', attachment: null, requires_submission: false });
+      setNewNotice({ title:'', content:'', severity:'info', attachment: null, requires_submission: false, deadline: '', due_date: '' });
       fetchAll();
     } catch (err) { 
       console.error(err); 
@@ -655,10 +662,27 @@ const Admin = () => {
                 <input type="file" style={InputStyle} accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" onChange={e => setNewNotice(n=>({...n,attachment:e.target.files[0]}))} />
                 <p style={{ fontSize:'10px', color:'var(--text-muted)', marginTop:'4px' }}>Max 5MB. Images, PDF, or Word docs.</p>
               </div>
+              <div>
+                <label style={LabelStyle}>Due Date (Optional)</label>
+                <input type="datetime-local" style={{...InputStyle, colorScheme: 'dark'}} value={newNotice.due_date} onChange={e => setNewNotice(n=>({...n,due_date:e.target.value}))} />
+                <p style={{ fontSize:'10px', color:'var(--text-muted)', marginTop:'4px' }}>Set a due date for this notice/assignment.</p>
+              </div>
               <label style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer', color:'var(--text-primary)', fontSize:'13px', fontWeight:600 }}>
                 <input type="checkbox" checked={newNotice.requires_submission} onChange={e => setNewNotice(n=>({...n,requires_submission:e.target.checked}))} style={{ width:'16px', height:'16px', accentColor:'#10b981', cursor:'pointer' }} />
                 Requires Assignment Submission
               </label>
+              {newNotice.requires_submission && (
+                <div style={{ 
+                  padding: '14px', 
+                  borderRadius: '12px', 
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-secondary)'
+                }}>
+                  <label style={{...LabelStyle}}>Submission Deadline *</label>
+                  <input required type="datetime-local" style={{...InputStyle, colorScheme: 'dark'}} value={newNotice.deadline} onChange={e => setNewNotice(n=>({...n,deadline:e.target.value}))} />
+                  <p style={{ fontSize:'10px', color:'var(--text-muted)', marginTop:'4px' }}>Students can submit assignments until this date and time.</p>
+                </div>
+              )}
               <div style={{ display:'flex', gap:'12px', marginTop:'8px' }}>
                 <button type="button" onClick={() => setShowModal(false)} style={{ flex:1, padding:'12px', borderRadius:'12px', border:'1px solid var(--border-color)', background:'transparent', color:'var(--text-secondary)', fontWeight:700, fontSize:'14px', cursor:'pointer' }}>Cancel</button>
                 <button type="submit" disabled={submitting} style={{ flex:1, padding:'12px', borderRadius:'12px', border:'none', color:'var(--text-primary)', fontWeight:700, fontSize:'14px', cursor: submitting ? 'not-allowed' : 'pointer', background:'linear-gradient(135deg,#10b981,#059669)', boxShadow:'0 4px 14px rgba(16,185,129,0.4)', opacity: submitting ? 0.7 : 1 }}>

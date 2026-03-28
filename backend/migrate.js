@@ -60,7 +60,9 @@ async function migrate() {
     // Add columns that may not exist (idempotent)
     await client.query(`
       ALTER TABLE notices
-        ADD COLUMN IF NOT EXISTS requires_submission BOOLEAN DEFAULT false;
+        ADD COLUMN IF NOT EXISTS requires_submission BOOLEAN DEFAULT false,
+        ADD COLUMN IF NOT EXISTS deadline TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;
 
       ALTER TABLE assignment_submissions
         ADD COLUMN IF NOT EXISTS notice_id INTEGER REFERENCES notices(id) ON DELETE SET NULL;
